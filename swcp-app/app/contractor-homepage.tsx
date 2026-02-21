@@ -8,6 +8,11 @@ import LottieView from 'lottie-react-native';
 export default function ContractorHome() {
   const [menuVisible, setMenuVisible] = useState(false);
   const [showAnimation, setShowAnimation] = useState(true);
+  const [workers, setWorkers] = useState([
+    { id: 1, name: "John Smith", profession: "Plumber" },
+    { id: 2, name: "Sarah Johnson", profession: "Electrician" },
+    { id: 3, name: "Mike Davis", profession: "Carpenter" },
+  ]);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowAnimation(false), 4000);
@@ -82,7 +87,7 @@ export default function ContractorHome() {
           {/* STATS */}
           <View style={styles.statsContainer}>
             {[
-              { label: "Available Workers", value: "" },
+              { label: "All Workers", value: "" },
               { label: "New Responses", value: "" },
               { label: "Active Projects", value: "" },
               { label: "Demand Forecast", value: "" },
@@ -99,12 +104,11 @@ export default function ContractorHome() {
             <Text style={styles.sectionTitle}>Suggested Workers</Text>
 
             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              {["", "", ""].map((name, i) => (
-                <View key={i} style={styles.workerCard}>
+              {workers.map((worker) => (
+                <View key={worker.id} style={styles.workerCard}>
                   <View style={styles.workerAvatar} />
-                  <Text style={styles.workerName}>{name}</Text>
-                  <Text style={styles.workerTag}></Text>
-                  <Text style={styles.workerRating}></Text>
+                  <Text style={styles.workerName}>{worker.name}</Text>
+                  <Text style={styles.workerTag}>{worker.profession}</Text>
                 </View>
               ))}
             </View>
