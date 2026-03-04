@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  ActivityIndicator,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -18,7 +17,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function WorkerSignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const onLogin = async () => {
     if (!email || !password) {
@@ -27,56 +25,43 @@ export default function WorkerSignIn() {
     }
 
     try {
-      setLoading(true);
-
-      // 🔹 Step 1: Firebase Auth Login
+      // 🔹 Step 1: Login with Firebase Auth
       const userCredential = await signInWithEmailAndPassword(
         auth,
-        email.trim(),
+        email,
         password
       );
 
       const user = userCredential.user;
 
-      // 🔹 Step 2: Fetch user role
-      const userDocRef = doc(db, "users", user.uid);
-      const userDocSnap = await getDoc(userDocRef);
+      // 🔹 Step 2: Get user document from Firestore
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
 
-      if (!userDocSnap.exists()) {
-        Alert.alert("Error", "User record not found.");
-        setLoading(false);
+      if (!userSnap.exists()) {
+        Alert.alert("Error", "User data not found in database.");
         return;
       }
 
-      const userData = userDocSnap.data();
+      const userData = userSnap.data();
 
-      // 🔹 Step 3: Check if worker
+      // 🔹 Step 3: Check if role is worker
       if (userData.role !== "worker") {
         Alert.alert("Access Denied", "You are not registered as a worker.");
-        setLoading(false);
         return;
       }
 
-      // 🔹 Step 4: Save login state
+      // 🔹 Step 4: Save login state locally
       await AsyncStorage.setItem("isLoggedIn", "true");
-      await AsyncStorage.setItem("userRole", "worker");
+      await AsyncStorage.setItem("userRole", userData.role);
       await AsyncStorage.setItem("uid", user.uid);
 
-      // 🔥 Step 5: Check if profile exists
-      const profileRef = doc(db, "workerProfiles", user.uid);
-      const profileSnap = await getDoc(profileRef);
-
-      if (profileSnap.exists()) {
-        router.replace("/worker-homepage");
-      } else {
-        router.replace("/workerProfile");
-      }
+      // 🔹 Step 5: Navigate to worker homepage
+      router.replace("/worker-homepage");
 
     } catch (error: any) {
   Alert.alert("Login Failed", error.message);
-} finally {
-      setLoading(false);
-    }
+}
   };
 
   return (
@@ -88,11 +73,11 @@ export default function WorkerSignIn() {
             fontSize: 26,
             fontWeight: "bold",
             textAlign: "center",
-            marginTop: 60,
+            marginTop: 40,
             color: "#540b0e",
           }}
         >
-          Worker Sign In
+          Worker Signin
         </Text>
 
         {/* Email */}
@@ -100,14 +85,14 @@ export default function WorkerSignIn() {
           Email Address
         </Text>
         <TextInput
-          placeholder="Enter your email"
+          placeholder="Enter Your Mail"
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
           style={{
             backgroundColor: "#F4F4F4",
-            padding: 14,
+            padding: 12,
             borderRadius: 10,
             marginTop: 6,
             fontSize: 16,
@@ -125,7 +110,7 @@ export default function WorkerSignIn() {
           onChangeText={setPassword}
           style={{
             backgroundColor: "#F4F4F4",
-            padding: 14,
+            padding: 12,
             borderRadius: 10,
             marginTop: 6,
             fontSize: 16,
@@ -140,20 +125,15 @@ export default function WorkerSignIn() {
             padding: 15,
             borderRadius: 10,
             alignItems: "center",
-            marginTop: 30,
+            marginTop: 25,
           }}
-          disabled={loading}
         >
-          {loading ? (
-            <ActivityIndicator color="#000" />
-          ) : (
-            <Text style={{ fontSize: 18, fontWeight: "bold" }}>
-              Login
-            </Text>
-          )}
+          <Text style={{ fontSize: 18, fontWeight: "bold" }}>
+            Login
+          </Text>
         </TouchableOpacity>
 
-        {/* Divider */}
+        {/* OR Divider */}
         <View
           style={{
             flexDirection: "row",
@@ -166,7 +146,7 @@ export default function WorkerSignIn() {
           <View style={{ flex: 1, height: 1, backgroundColor: "#ccc" }} />
         </View>
 
-        {/* Google Button */}
+        {/* Google Login */}
         <TouchableOpacity
           style={{
             flexDirection: "row",
@@ -198,9 +178,7 @@ export default function WorkerSignIn() {
         >
           <Text>Don’t have an account? </Text>
           <TouchableOpacity onPress={() => router.push("/worker-signup")}>
-            <Text style={{ color: "#1877F2", fontWeight: "600" }}>
-              Sign Up
-            </Text>
+            <Text style={{ color: "#1877F2" }}>Sign Up</Text>
           </TouchableOpacity>
         </View>
 
