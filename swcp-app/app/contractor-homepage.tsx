@@ -26,9 +26,9 @@ export default function ContractorHome() {
 
   return (
     <View style={styles.container}>
-
+      
       <View style={styles.topBar}>
-        
+
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Text style={styles.appTitle}>SmartConnect</Text>
         </View>
@@ -157,6 +157,7 @@ export default function ContractorHome() {
           <AntDesign name="user" size={22} color="#666" />
           <Text style={styles.navLabel}>Profile</Text>
         </TouchableOpacity>
+
       </View>
 
     </View>
@@ -165,7 +166,6 @@ export default function ContractorHome() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF', paddingTop: 50 },
-
 
   topBar: {
     flexDirection: "row",

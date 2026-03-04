@@ -1,58 +1,110 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
-import { router } from 'expo-router';
-
-// Firebase imports
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from "react-native";
+import { router } from "expo-router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from '../configs/FirebaseConfig';   // <-- Make sure this path is correct
+import { setDoc, doc, serverTimestamp } from "firebase/firestore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { auth, db } from "../configs/FirebaseConfig";
 
 export default function ContractorSignUp() {
+  const [name, setName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
-  const OnCreateAccount = () => {
-
-    if (!email || !password) {
-      console.log("Email and Password required");
+  const onCreateAccount = async () => {
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      Alert.alert("Error", "Please fill all fields");
       return;
     }
 
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        console.log("User Created:", user);
+    if (password.length < 6) {
+      Alert.alert("Weak Password", "Password must be at least 6 characters.");
+      return;
+    }
 
-        // Move to next page
-        router.push('/contractor-homepage');  
-      })
-      .catch((error) => {
-        console.log("Signup Error:", error.message);
+    try {
+      setLoading(true);
+
+      // 🔹 1. Create Auth user
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password
+      );
+
+      const user = userCredential.user;
+
+      // 🔹 2. Save user data in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        role: "contractor",
+        createdAt: serverTimestamp(),
       });
+
+      // 🔹 3. Save login session locally
+      await AsyncStorage.setItem("isLoggedIn", "true");
+      await AsyncStorage.setItem("userRole", "contractor");
+      await AsyncStorage.setItem("uid", user.uid);
+
+      Alert.alert("Success", "Contractor account created successfully!");
+
+      // 🔹 4. Navigate
+      router.replace("/contractor-homepage");
+
+    } catch (error: any) {
+      console.log("Signup Error:", error);
+
+      let message = "Something went wrong. Please try again.";
+
+      if (error.code === "auth/email-already-in-use") {
+        message = "This email is already registered.";
+      } else if (error.code === "auth/invalid-email") {
+        message = "Invalid email address.";
+      } else if (error.code === "auth/weak-password") {
+        message = "Password is too weak.";
+      }
+
+      Alert.alert("Signup Failed", message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1, backgroundColor: '#fff' }}>
+    <ScrollView contentContainerStyle={{ flexGrow: 1, backgroundColor: "#fff" }}>
       <View style={{ padding: 20 }}>
 
         <Text
           style={{
             fontSize: 26,
-            fontWeight: 'bold',
-            textAlign: 'center',
+            fontWeight: "bold",
+            textAlign: "center",
             marginTop: 40,
-            color:'#540b0e'
+            color: "#540b0e",
           }}
         >
           Contractor Signup
         </Text>
 
         {/* Full Name */}
-        <Text style={{ marginTop: 40, fontSize: 14, color: '#555' }}>Full Name</Text>
+        <Text style={{ marginTop: 40, fontSize: 14, color: "#555" }}>
+          Full Name
+        </Text>
         <TextInput
-          placeholder="Full Name"
+          placeholder="Enter your full name"
+          value={name}
+          onChangeText={setName}
           style={{
-            backgroundColor: '#F4F4F4',
+            backgroundColor: "#F4F4F4",
             padding: 12,
             borderRadius: 10,
             marginTop: 6,
@@ -61,12 +113,17 @@ export default function ContractorSignUp() {
         />
 
         {/* Email */}
-        <Text style={{ marginTop: 20, fontSize: 14, color: '#555' }}>Email Address</Text>
+        <Text style={{ marginTop: 20, fontSize: 14, color: "#555" }}>
+          Email Address
+        </Text>
         <TextInput
           placeholder="Enter email"
-          onChangeText={(value) => setEmail(value)}
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
           style={{
-            backgroundColor: '#F4F4F4',
+            backgroundColor: "#F4F4F4",
             padding: 12,
             borderRadius: 10,
             marginTop: 6,
@@ -75,13 +132,16 @@ export default function ContractorSignUp() {
         />
 
         {/* Password */}
-        <Text style={{ marginTop: 20, fontSize: 14, color: '#555' }}>Password</Text>
+        <Text style={{ marginTop: 20, fontSize: 14, color: "#555" }}>
+          Password
+        </Text>
         <TextInput
-          placeholder="********"
+          placeholder="Minimum 6 characters"
           secureTextEntry
-          onChangeText={(value) => setPassword(value)}
+          value={password}
+          onChangeText={setPassword}
           style={{
-            backgroundColor: '#F4F4F4',
+            backgroundColor: "#F4F4F4",
             padding: 12,
             borderRadius: 10,
             marginTop: 6,
@@ -91,23 +151,32 @@ export default function ContractorSignUp() {
 
         {/* Signup Button */}
         <TouchableOpacity
-          onPress={OnCreateAccount}
+          onPress={onCreateAccount}
+          disabled={loading}
           style={{
-            backgroundColor: '#83c5be',
+            backgroundColor: loading ? "#ccc" : "#83c5be",
             padding: 15,
             borderRadius: 10,
-            alignItems: 'center',
-            marginTop: 20,
+            alignItems: "center",
+            marginTop: 25,
           }}
         >
-          <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Sign Up</Text>
+          <Text style={{ fontSize: 18, fontWeight: "bold" }}>
+            {loading ? "Creating Account..." : "Sign Up"}
+          </Text>
         </TouchableOpacity>
 
         {/* Login Redirect */}
-        <View style={{ marginTop: 30, flexDirection: 'row', justifyContent: 'center' }}>
+        <View
+          style={{
+            marginTop: 30,
+            flexDirection: "row",
+            justifyContent: "center",
+          }}
+        >
           <Text>Already have an account? </Text>
-          <TouchableOpacity onPress={() => router.push('/contractor-signin')}>
-            <Text style={{ color: '#1877F2' }}>Login</Text>
+          <TouchableOpacity onPress={() => router.push("/contractor-signin")}>
+            <Text style={{ color: "#1877F2" }}>Login</Text>
           </TouchableOpacity>
         </View>
 
