@@ -1,40 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+} from "react-native";
+import { AntDesign } from "@expo/vector-icons";
+import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import LottieView from 'lottie-react-native';
+import LottieView from "lottie-react-native";
 
 export default function ContractorHome() {
   const [menuVisible, setMenuVisible] = useState(false);
   const [showAnimation, setShowAnimation] = useState(true);
-  const [workers, setWorkers] = useState([
-  ]);
 
+  // 🔥 Hide animation after 3 seconds
   useEffect(() => {
-    const timer = setTimeout(() => setShowAnimation(false), 4000);
+    const timer = setTimeout(() => {
+      setShowAnimation(false);
+    }, 3000);
+
     return () => clearTimeout(timer);
   }, []);
- 
+
+  // 🔥 Logout Function
   const logout = async () => {
-    await AsyncStorage.removeItem("isLoggedIn");
-    router.replace("/"); 
+    await AsyncStorage.clear();
+    router.replace("/");
   };
 
   return (
     <View style={styles.container}>
-      
+      {/* ================== TOP BAR ================== */}
       <View style={styles.topBar}>
+        <Text style={styles.appTitle}>SmartConnect</Text>
 
         <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Text style={styles.appTitle}>SmartConnect</Text>
-        </View>
-
-        {/* Right Side: Notification + Menu */}
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          
-          {/* Notification Button */}
-          <TouchableOpacity onPress={() => console.log("Notifications")}>
+          <TouchableOpacity>
             <AntDesign
               name="notification"
               size={22}
@@ -43,86 +47,100 @@ export default function ContractorHome() {
             />
           </TouchableOpacity>
 
-          {/* Menu Button */}
           <TouchableOpacity onPress={() => setMenuVisible(true)}>
             <AntDesign name="menu-fold" size={24} color="#000" />
           </TouchableOpacity>
-
         </View>
       </View>
 
-      {/* ANIMATION */}
+      {/* ================== START ANIMATION ================== */}
       {showAnimation && (
         <View style={styles.animationContainer}>
-          <LottieView 
-            source={require('../assets/images/animations/contractor_start.json')}
-            autoPlay 
-            loop 
-            style={{ width: 350, height: 350 }} 
+          <LottieView
+            source={require("../assets/images/animations/contractor_start.json")}
+            autoPlay
+            loop
+            style={{ width: 300, height: 300 }}
           />
         </View>
       )}
 
-      {/* MENU */}
-      <Modal transparent={true} visible={menuVisible} animationType="fade" onRequestClose={() => setMenuVisible(false)}>
-        <TouchableOpacity style={styles.modalBackground} activeOpacity={1} onPressOut={() => setMenuVisible(false)}>
+      {/* ================== POPUP MENU ================== */}
+      <Modal
+        transparent
+        visible={menuVisible}
+        animationType="fade"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalBackground}
+          activeOpacity={1}
+          onPressOut={() => setMenuVisible(false)}
+        >
           <View style={styles.popupMenu}>
-            <TouchableOpacity onPress={() => router.push("/")}>
+            {/* Profile */}
+            <TouchableOpacity
+              onPress={() => {
+                setMenuVisible(false);
+                router.push("/workerProfile"); // 🔥 Opens Profile Page
+              }}
+            >
               <Text style={styles.popupItem}>Profile</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={logout}>
+            {/* Logout */}
+            <TouchableOpacity
+              onPress={() => {
+                setMenuVisible(false);
+                logout();
+              }}
+            >
               <Text style={styles.popupItem}>Logout</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </Modal>
 
+      {/* ================== MAIN CONTENT ================== */}
       {!showAnimation && (
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-
-          {/* STATS */}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 100 }}
+        >
+          {/* Stats Section */}
           <View style={styles.statsContainer}>
             {[
-              { label: "All Workers", value: "" },
-              { label: "New Responses", value: "" },
-              { label: "Active Projects", value: "" },
-              { label: "Demand Forecast", value: "" },
-            ].map((item, i) => (
-              <View key={i} style={styles.statBox}>
+              { label: "All Workers", value: "0" },
+              { label: "New Responses", value: "0" },
+              { label: "Active Projects", value: "0" },
+              { label: "Demand Forecast", value: "0" },
+            ].map((item, index) => (
+              <View key={index} style={styles.statBox}>
                 <Text style={styles.statLabel}>{item.label}</Text>
                 <Text style={styles.statValue}>{item.value}</Text>
               </View>
             ))}
           </View>
 
-          {/* NOTIFICATIONS */}
-          <View style={{ marginTop: 20, paddingHorizontal: 20 }}>
+          {/* Notifications */}
+          <View style={{ marginTop: 25, paddingHorizontal: 20 }}>
             <Text style={styles.sectionTitle}>Notifications & Alerts</Text>
 
-            {/* Empty notifications list */}
-            {[].map((note, i) => (
-              <View key={i} style={styles.notificationBox}>
-                <View
-                  style={{
-                    width: 10,
-                    height: 10,
-                    backgroundColor: i === 0 ? "red" : "green",
-                    borderRadius: 5,
-                    marginRight: 10,
-                  }}
-                />
-                <Text style={{ fontSize: 14 }}>{note}</Text>
-              </View>
-            ))}
+            <View style={styles.notificationBox}>
+              <View style={styles.redDot} />
+              <Text style={{ fontSize: 14 }}>
+                No new notifications available.
+              </Text>
+            </View>
           </View>
         </ScrollView>
       )}
 
+      {/* ================== BOTTOM NAV ================== */}
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem}>
           <AntDesign name="home" size={22} color="#1DB954" />
-          <Text style={styles.navLabel}>Home</Text>
+          <Text style={styles.navLabelActive}>Home</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.navItem}>
@@ -135,19 +153,26 @@ export default function ContractorHome() {
           <Text style={styles.navLabel}>Workers</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navItem}>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => router.push("/workerProfile")}
+        >
           <AntDesign name="user" size={22} color="#666" />
           <Text style={styles.navLabel}>Profile</Text>
         </TouchableOpacity>
-
       </View>
-
     </View>
   );
 }
 
+/* ================== STYLES ================== */
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF', paddingTop: 50 },
+  container: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    paddingTop: 50,
+  },
 
   topBar: {
     flexDirection: "row",
@@ -155,7 +180,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingBottom: 10,
-    backgroundColor: "#fff",
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
@@ -163,68 +187,51 @@ const styles = StyleSheet.create({
   appTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color:"#540b0e"
+    color: "#540b0e",
   },
 
   animationContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1,
+  },
+
+  modalBackground: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: '#FFFFFF',
-    zIndex: 1
+    justifyContent: "flex-start",
+    alignItems: "flex-end",
+    paddingTop: 70,
+    paddingRight: 20,
   },
 
-  modalBackground: { 
-    flex: 1, 
-    justifyContent: 'flex-start', 
-    alignItems: 'flex-end', 
-    paddingTop: 70, 
-    paddingRight: 20 
+  popupMenu: {
+    backgroundColor: "#FFF",
+    width: 160,
+    borderRadius: 10,
+    elevation: 5,
   },
 
-  popupMenu: { 
-    backgroundColor: '#FFF', 
-    width: 150, 
-    paddingVertical: 10,
-    borderRadius: 10, 
-    elevation: 5 
-  },
-
-  popupItem: { 
-    fontSize: 18, 
-    padding: 12, 
-    borderBottomWidth: 0.5, 
-    borderBottomColor: '#DDD' 
-  },
-
-  postJobBtn: {
-    backgroundColor: "#1DB954",
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 25
-  },
-
-  postJobText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700"
+  popupItem: {
+    fontSize: 16,
+    padding: 14,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#DDD",
   },
 
   statsContainer: {
-    marginTop: 20,
+    marginTop: 25,
     paddingHorizontal: 20,
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
   },
-sectionTitle: {
-  fontSize: 18,
-  fontWeight: "700",
-  marginBottom: 10,
-  color: "#333",
-},
+
   statBox: {
     width: "48%",
     backgroundColor: "#fff",
@@ -234,29 +241,23 @@ sectionTitle: {
     elevation: 3,
   },
 
-  statLabel: { fontSize: 14, color: "#555" },
-  statValue: { fontSize: 22, fontWeight: "700", marginTop: 5 },
-
-  workerCard: {
-    width: "32%",
-    backgroundColor: "#fff",
-    padding: 10,
-    borderRadius: 12,
-    elevation: 3,
-    alignItems: "center",
+  statLabel: {
+    fontSize: 14,
+    color: "#555",
   },
 
-  workerAvatar: {
-    width: 55,
-    height: 55,
-    backgroundColor: "#eee",
-    borderRadius: 30,
-    marginBottom: 5,
+  statValue: {
+    fontSize: 22,
+    fontWeight: "700",
+    marginTop: 5,
   },
 
-  workerName: { fontWeight: "700", fontSize: 14 },
-  workerTag: { fontSize: 12, color: "#999" },
-  workerRating: { fontSize: 12, color: "#444", marginTop: 4 },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 10,
+    color: "#333",
+  },
 
   notificationBox: {
     flexDirection: "row",
@@ -264,12 +265,18 @@ sectionTitle: {
     backgroundColor: "#fff",
     padding: 12,
     borderRadius: 10,
-    marginBottom: 10,
     elevation: 2,
   },
 
+  redDot: {
+    width: 10,
+    height: 10,
+    backgroundColor: "red",
+    borderRadius: 5,
+    marginRight: 10,
+  },
+
   bottomNav: {
-    width: "100%",
     height: 70,
     flexDirection: "row",
     justifyContent: "space-around",
@@ -280,10 +287,10 @@ sectionTitle: {
     position: "absolute",
     bottom: 0,
     left: 0,
+    right: 0,
   },
 
   navItem: {
-    justifyContent: "center",
     alignItems: "center",
   },
 
@@ -291,5 +298,12 @@ sectionTitle: {
     fontSize: 12,
     marginTop: 2,
     color: "#444",
+  },
+
+  navLabelActive: {
+    fontSize: 12,
+    marginTop: 2,
+    color: "#1DB954",
+    fontWeight: "600",
   },
 });
