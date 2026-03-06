@@ -1,124 +1,145 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-  Image,
-} from "react-native";
-
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { AntDesign } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router } from "expo-router";
-import { AntDesign } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
+import LottieView from 'lottie-react-native';
 
-export default function WorkerProfile() {
-  const [image, setImage] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [skill, setSkill] = useState("");
-  const [experience, setExperience] = useState("");
-  const [certificate, setCertificate] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [address, setAddress] = useState("");
-  const [languages, setLanguages] = useState("");
-  const [country, setCountry] = useState("");
-  const [state, setState] = useState("");
-  const [district, setDistrict] = useState("");
+export default function ContractorHome() {
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [showAnimation, setShowAnimation] = useState(true);
+  const [workers, setWorkers] = useState([
+    { id: 1, name: "John Smith", profession: "Plumber" },
+    { id: 2, name: "Sarah Johnson", profession: "Electrician" },
+    { id: 3, name: "Mike Davis", profession: "Carpenter" },
+  ]);
 
-  // 📸 Pick Image (Latest Expo SDK Safe Version)
-const pickImage = async () => {
-  const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  useEffect(() => {
+    const timer = setTimeout(() => setShowAnimation(false), 4000);
+    return () => clearTimeout(timer);
+  }, []);
 
-  if (!permission.granted) {
-    Alert.alert("Permission required to access gallery");
-    return;
-  }
-
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ["images"],
-    allowsEditing: true,
-    aspect: [1, 1],
-    quality: 1,
-  });
-
-  if (!result.canceled && result.assets && result.assets.length > 0) {
-    setImage(result.assets[0].uri);
-  }
-};
-
-  const saveProfile = async () => {
-    if (!name || !skill || !experience || !phone || !email) {
-      Alert.alert("Please fill all required details");
-      return;
-    }
-
-    const profileData = {
-      image,
-      name,
-      skill,
-      experience,
-      certificate,
-      phone,
-      email,
-      address,
-      languages,
-      country,
-      state,
-      district,
-    };
-
-    await AsyncStorage.setItem("workerProfile", JSON.stringify(profileData));
-    await AsyncStorage.setItem("profileCompleted", "true");
-
-    Alert.alert("Profile Saved Successfully!");
-    router.replace("/worker-homepage");
+  const logout = async () => {
+    await AsyncStorage.removeItem("isLoggedIn");
+    router.replace("/"); 
   };
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
-      >
-        <Text style={styles.title}>Complete Your Profile</Text>
+      
+      <View style={styles.topBar}>
 
-        {/* Profile Image */}
-        <TouchableOpacity style={styles.imageContainer} onPress={pickImage}>
-          {image ? (
-            <Image source={{ uri: image }} style={styles.profileImage} />
-          ) : (
-            <AntDesign name="camera" size={30} color="#555" />
-          )}
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Text style={styles.appTitle}>SmartConnect</Text>
+        </View>
+
+        {/* Right Side: Notification + Menu */}
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          
+          {/* Notification Button */}
+          <TouchableOpacity onPress={() => console.log("Notifications")}>
+            <AntDesign
+              name="notification"
+              size={22}
+              color="#000"
+              style={{ marginRight: 20 }}
+            />
+          </TouchableOpacity>
+
+          {/* Menu Button */}
+          <TouchableOpacity onPress={() => setMenuVisible(true)}>
+            <AntDesign name="menu-fold" size={24} color="#000" />
+          </TouchableOpacity>
+
+        </View>
+      </View>
+
+      {/* ANIMATION */}
+      {showAnimation && (
+        <View style={styles.animationContainer}>
+          <LottieView 
+            source={require('../assets/images/animations/contractor_start.json')}
+            autoPlay 
+            loop 
+            style={{ width: 350, height: 350 }} 
+          />
+        </View>
+      )}
+
+      {/* MENU */}
+      <Modal transparent={true} visible={menuVisible} animationType="fade" onRequestClose={() => setMenuVisible(false)}>
+        <TouchableOpacity style={styles.modalBackground} activeOpacity={1} onPressOut={() => setMenuVisible(false)}>
+          <View style={styles.popupMenu}>
+            <TouchableOpacity onPress={() => router.push("/")}>
+              <Text style={styles.popupItem}>Profile</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={logout}>
+              <Text style={styles.popupItem}>Logout</Text>
+            </TouchableOpacity>
+          </View>
         </TouchableOpacity>
+      </Modal>
 
-        <TextInput placeholder="Full Name" style={styles.input} value={name} onChangeText={setName} />
-        <TextInput placeholder="Skills (Electrician, Plumber...)" style={styles.input} value={skill} onChangeText={setSkill} />
-        <TextInput placeholder="Experience (in years)" style={styles.input} value={experience} onChangeText={setExperience} keyboardType="numeric" />
-        <TextInput placeholder="Certificate Details" style={styles.input} value={certificate} onChangeText={setCertificate} />
-        <TextInput placeholder="Phone Number" style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-        <TextInput placeholder="Email" style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" />
-        <TextInput placeholder="Address" style={styles.input} value={address} onChangeText={setAddress} />
-        <TextInput placeholder="Languages Known" style={styles.input} value={languages} onChangeText={setLanguages} />
-        <TextInput placeholder="Country" style={styles.input} value={country} onChangeText={setCountry} />
-        <TextInput placeholder="State" style={styles.input} value={state} onChangeText={setState} />
-        <TextInput placeholder="District" style={styles.input} value={district} onChangeText={setDistrict} />
+      {!showAnimation && (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
 
-        <TouchableOpacity style={styles.saveBtn} onPress={saveProfile}>
-          <Text style={styles.saveText}>Save Profile</Text>
-        </TouchableOpacity>
-      </ScrollView>
+          {/* STATS */}
+          <View style={styles.statsContainer}>
+            {[
+              { label: "All Workers", value: "" },
+              { label: "New Responses", value: "" },
+              { label: "Active Projects", value: "" },
+              { label: "Demand Forecast", value: "" },
+            ].map((item, i) => (
+              <View key={i} style={styles.statBox}>
+                <Text style={styles.statLabel}>{item.label}</Text>
+                <Text style={styles.statValue}>{item.value}</Text>
+              </View>
+            ))}
+          </View>
 
-      {/* ================== BOTTOM NAV ================== */}
+          {/* SUGGESTED WORKERS */}
+          <View style={{ marginTop: 10, paddingHorizontal: 20 }}>
+            <Text style={styles.sectionTitle}>Suggested Workers</Text>
+
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+              {workers.map((worker) => (
+                <View key={worker.id} style={styles.workerCard}>
+                  <View style={styles.workerAvatar} />
+                  <Text style={styles.workerName}>{worker.name}</Text>
+                  <Text style={styles.workerTag}>{worker.profession}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* NOTIFICATIONS */}
+          <View style={{ marginTop: 20, paddingHorizontal: 20 }}>
+            <Text style={styles.sectionTitle}>Notifications & Alerts</Text>
+
+            {/* Empty notifications list */}
+            {[].map((note, i) => (
+              <View key={i} style={styles.notificationBox}>
+                <View
+                  style={{
+                    width: 10,
+                    height: 10,
+                    backgroundColor: i === 0 ? "red" : "green",
+                    borderRadius: 5,
+                    marginRight: 10,
+                  }}
+                />
+                <Text style={{ fontSize: 14 }}>{note}</Text>
+              </View>
+            ))}
+          </View>
+        </ScrollView>
+      )}
+
       <View style={styles.bottomNav}>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => router.replace("/worker-homepage")}
-        >
-          <AntDesign name="home" size={22} color="#666" />
+        <TouchableOpacity style={styles.navItem}>
+          <AntDesign name="home" size={22} color="#1DB954" />
           <Text style={styles.navLabel}>Home</Text>
         </TouchableOpacity>
 
@@ -133,70 +154,140 @@ const pickImage = async () => {
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.navItem}>
-          <AntDesign name="user" size={22} color="#1DB954" />
-          <Text style={styles.navLabelActive}>Profile</Text>
+          <AntDesign name="user" size={22} color="#666" />
+          <Text style={styles.navLabel}>Profile</Text>
         </TouchableOpacity>
+
       </View>
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { flex: 1, backgroundColor: '#FFFFFF', paddingTop: 50 },
+
+  topBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingBottom: 10,
     backgroundColor: "#fff",
-    paddingTop: 60,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
   },
 
-  title: {
-    fontSize: 22,
+  appTitle: {
+    fontSize: 20,
     fontWeight: "700",
-    marginBottom: 20,
-    textAlign: "center",
+    color:"#540b0e"
   },
 
-  imageContainer: {
-    alignSelf: "center",
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "#eee",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
+  animationContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: '#FFFFFF',
+    zIndex: 1
   },
 
-  profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+  modalBackground: { 
+    flex: 1, 
+    justifyContent: 'flex-start', 
+    alignItems: 'flex-end', 
+    paddingTop: 70, 
+    paddingRight: 20 
   },
 
-  input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 15,
-    marginHorizontal: 20,
+  popupMenu: { 
+    backgroundColor: '#FFF', 
+    width: 150, 
+    paddingVertical: 10,
+    borderRadius: 10, 
+    elevation: 5 
   },
 
-  saveBtn: {
+  popupItem: { 
+    fontSize: 18, 
+    padding: 12, 
+    borderBottomWidth: 0.5, 
+    borderBottomColor: '#DDD' 
+  },
+
+  postJobBtn: {
     backgroundColor: "#1DB954",
-    padding: 15,
-    borderRadius: 25,
-    alignItems: "center",
-    marginHorizontal: 20,
-    marginTop: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    borderRadius: 25
   },
 
-  saveText: {
+  postJobText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: 18,
+    fontWeight: "700"
+  },
+
+  statsContainer: {
+    marginTop: 20,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+sectionTitle: {
+  fontSize: 18,
+  fontWeight: "700",
+  marginBottom: 10,
+  color: "#333",
+},
+  statBox: {
+    width: "48%",
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 12,
+    elevation: 3,
+  },
+
+  statLabel: { fontSize: 14, color: "#555" },
+  statValue: { fontSize: 22, fontWeight: "700", marginTop: 5 },
+
+  workerCard: {
+    width: "32%",
+    backgroundColor: "#fff",
+    padding: 10,
+    borderRadius: 12,
+    elevation: 3,
+    alignItems: "center",
+  },
+
+  workerAvatar: {
+    width: 55,
+    height: 55,
+    backgroundColor: "#eee",
+    borderRadius: 30,
+    marginBottom: 5,
+  },
+
+  workerName: { fontWeight: "700", fontSize: 14 },
+  workerTag: { fontSize: 12, color: "#999" },
+  workerRating: { fontSize: 12, color: "#444", marginTop: 4 },
+
+  notificationBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 10,
+    elevation: 2,
   },
 
   bottomNav: {
+    width: "100%",
     height: 70,
     flexDirection: "row",
     justifyContent: "space-around",
@@ -207,10 +298,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     left: 0,
-    right: 0,
   },
 
   navItem: {
+    justifyContent: "center",
     alignItems: "center",
   },
 
@@ -218,12 +309,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 2,
     color: "#444",
-  },
-
-  navLabelActive: {
-    fontSize: 12,
-    marginTop: 2,
-    color: "#1DB954",
-    fontWeight: "600",
   },
 });
