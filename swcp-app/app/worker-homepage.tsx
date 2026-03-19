@@ -19,10 +19,16 @@ export default function ContractorHome() {
     return () => clearTimeout(timer);
   }, []);
 
-  const logout = async () => {
-    await AsyncStorage.removeItem("isLoggedIn");
-    router.replace("/"); 
-  };
+ const logout = async () => {
+  try {
+    await AsyncStorage.removeItem("workerLoggedIn");
+    await AsyncStorage.removeItem("userData"); // optional but recommended
+
+    router.replace("/worker-signin"); // go to login page
+  } catch (error) {
+    console.log("Logout error:", error);
+  }
+};
 
   return (
     <View style={styles.container}>
@@ -153,11 +159,13 @@ export default function ContractorHome() {
           <Text style={styles.navLabel}>Workers</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navItem}>
-          <AntDesign name="user" size={22} color="#666" />
-          <Text style={styles.navLabel}>Profile</Text>
-        </TouchableOpacity>
-
+       <TouchableOpacity 
+  style={styles.navItem}
+  onPress={() => router.push("/workerProfile")}
+>
+  <AntDesign name="user" size={22} color="#666" />
+  <Text style={styles.navLabel}>Profile</Text>
+</TouchableOpacity>
       </View>
 
     </View>

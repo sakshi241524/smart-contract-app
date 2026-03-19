@@ -1,22 +1,71 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Alert
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function WorkerSignIn() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
+  // ✅ AUTO LOGIN
+  useEffect(() => {
+    const checkLogin = async () => {
+      try {
+        const isLoggedIn = await AsyncStorage.getItem("workerLoggedIn");
 
-    if (!email || !password) {
-      Alert.alert("Error", "Please enter email and password");
-      return;
+        if (isLoggedIn === "true") {
+          router.replace("/worker-homepage");
+        }
+      } catch (error) {
+        console.log("Auto login error:", error);
+      }
+    };
+
+    checkLogin();
+  }, []);
+
+  // ✅ LOGIN FUNCTION
+  const handleLogin = async () => {
+    try {
+      const cleanEmail = email.trim();
+      const cleanPassword = password.trim();
+
+      if (!cleanEmail || !cleanPassword) {
+        Alert.alert("Error", "Please enter email and password");
+        return;
+      }
+
+      // 👉 Create username from email
+      const username = cleanEmail.split("@")[0];
+
+      // ✅ Create user object (VERY IMPORTANT)
+      const userData = {
+        name: username,
+        email: cleanEmail,
+        phone: "",
+        department: "",
+      };
+
+      // ✅ Save to AsyncStorage
+      await AsyncStorage.setItem("userData", JSON.stringify(userData));
+      await AsyncStorage.setItem("workerLoggedIn", "true");
+
+      // ✅ Navigate to home
+      router.replace("/worker-homepage");
+
+    } catch (error) {
+      console.log("Login error:", error);
+      Alert.alert("Error", "Something went wrong");
     }
-
-    // Navigate to worker homepage
-    router.replace('/worker-homepage');
   };
 
   return (
@@ -30,18 +79,22 @@ export default function WorkerSignIn() {
             fontWeight: 'bold',
             textAlign: 'center',
             marginTop: 40,
-            color:'#540b0e'
+            color: '#540b0e'
           }}
         >
           Worker Signin
         </Text>
 
         {/* Email */}
-        <Text style={{ marginTop: 40, fontSize: 14, color: '#555' }}>Email Address</Text>
+        <Text style={{ marginTop: 40, fontSize: 14, color: '#555' }}>
+          Email Address
+        </Text>
         <TextInput
           placeholder="Enter Your Mail"
           value={email}
           onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
           style={{
             backgroundColor: '#F4F4F4',
             padding: 12,
@@ -52,7 +105,9 @@ export default function WorkerSignIn() {
         />
 
         {/* Password */}
-        <Text style={{ marginTop: 20, fontSize: 14, color: '#555' }}>Password</Text>
+        <Text style={{ marginTop: 20, fontSize: 14, color: '#555' }}>
+          Password
+        </Text>
         <TextInput
           placeholder="********"
           secureTextEntry
@@ -66,11 +121,6 @@ export default function WorkerSignIn() {
             fontSize: 16,
           }}
         />
-
-        {/* Forgot Password */}
-        <TouchableOpacity style={{ marginTop: 10 }}>
-          <Text style={{ color: '#1877F2', textAlign: 'right' }}>Forgot Password?</Text>
-        </TouchableOpacity>
 
         {/* Login Button */}
         <TouchableOpacity
@@ -111,7 +161,9 @@ export default function WorkerSignIn() {
           }}
         >
           <AntDesign name="google" size={24} color="#DB4437" style={{ marginRight: 10 }} />
-          <Text style={{ fontSize: 16, fontWeight: '600' }}>Login with Google</Text>
+          <Text style={{ fontSize: 16, fontWeight: '600' }}>
+            Login with Google
+          </Text>
         </TouchableOpacity>
 
         {/* Signup Redirect */}

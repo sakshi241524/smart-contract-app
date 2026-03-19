@@ -8,6 +8,7 @@ import LottieView from 'lottie-react-native';
 export default function ContractorHome() {
   const [menuVisible, setMenuVisible] = useState(false);
   const [showAnimation, setShowAnimation] = useState(true);
+
   const [workers, setWorkers] = useState([
     { id: 1, name: "John Smith", profession: "Plumber" },
     { id: 2, name: "Sarah Johnson", profession: "Electrician" },
@@ -21,54 +22,46 @@ export default function ContractorHome() {
 
   const logout = async () => {
     await AsyncStorage.removeItem("isLoggedIn");
-    router.replace("/"); 
+    router.replace("/");
   };
 
   return (
     <View style={styles.container}>
-      
+
+      {/* TOP BAR */}
       <View style={styles.topBar}>
+        <Text style={styles.appTitle}>SmartConnect</Text>
 
         <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Text style={styles.appTitle}>SmartConnect</Text>
-        </View>
-
-        {/* Right Side: Notification + Menu */}
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          
-          {/* Notification Button */}
-          <TouchableOpacity onPress={() => console.log("Notifications")}>
-            <AntDesign
-              name="notification"
-              size={22}
-              color="#000"
-              style={{ marginRight: 20 }}
-            />
+          <TouchableOpacity>
+            <AntDesign name="notification" size={22} style={{ marginRight: 20 }} />
           </TouchableOpacity>
 
-          {/* Menu Button */}
           <TouchableOpacity onPress={() => setMenuVisible(true)}>
-            <AntDesign name="menu-fold" size={24} color="#000" />
+            <AntDesign name="menu-fold" size={24} />
           </TouchableOpacity>
-
         </View>
       </View>
 
       {/* ANIMATION */}
       {showAnimation && (
         <View style={styles.animationContainer}>
-          <LottieView 
+          <LottieView
             source={require('../assets/images/animations/contractor_start.json')}
-            autoPlay 
-            loop 
-            style={{ width: 350, height: 350 }} 
+            autoPlay
+            loop
+            style={{ width: 350, height: 350 }}
           />
         </View>
       )}
 
       {/* MENU */}
-      <Modal transparent={true} visible={menuVisible} animationType="fade" onRequestClose={() => setMenuVisible(false)}>
-        <TouchableOpacity style={styles.modalBackground} activeOpacity={1} onPressOut={() => setMenuVisible(false)}>
+      <Modal transparent visible={menuVisible} animationType="fade">
+        <TouchableOpacity
+          style={styles.modalBackground}
+          activeOpacity={1}
+          onPressOut={() => setMenuVisible(false)}
+        >
           <View style={styles.popupMenu}>
             <TouchableOpacity onPress={() => router.push("/")}>
               <Text style={styles.popupItem}>Profile</Text>
@@ -81,20 +74,20 @@ export default function ContractorHome() {
         </TouchableOpacity>
       </Modal>
 
+      {/* MAIN CONTENT */}
       {!showAnimation && (
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
 
           {/* STATS */}
           <View style={styles.statsContainer}>
             {[
-              { label: "All Workers", value: "" },
-              { label: "New Responses", value: "" },
-              { label: "Active Projects", value: "" },
-              { label: "Demand Forecast", value: "" },
+              { label: "All Workers" },
+              { label: "New Responses" },
+              { label: "Active Projects" },
+              { label: "Demand Forecast" },
             ].map((item, i) => (
               <View key={i} style={styles.statBox}>
                 <Text style={styles.statLabel}>{item.label}</Text>
-                <Text style={styles.statValue}>{item.value}</Text>
               </View>
             ))}
           </View>
@@ -114,32 +107,28 @@ export default function ContractorHome() {
             </View>
           </View>
 
+          {/* POST JOB BUTTON */}
+          <View style={styles.postJobContainer}>
+            <TouchableOpacity
+              style={styles.postJobBtn}
+              onPress={() => router.push("/postjob")}
+            >
+              <Text style={styles.postJobText}>Post Job</Text>
+            </TouchableOpacity>
+          </View>
+
           {/* NOTIFICATIONS */}
           <View style={{ marginTop: 20, paddingHorizontal: 20 }}>
             <Text style={styles.sectionTitle}>Notifications & Alerts</Text>
-
-            {/* Empty notifications list */}
-            {[].map((note, i) => (
-              <View key={i} style={styles.notificationBox}>
-                <View
-                  style={{
-                    width: 10,
-                    height: 10,
-                    backgroundColor: i === 0 ? "red" : "green",
-                    borderRadius: 5,
-                    marginRight: 10,
-                  }}
-                />
-                <Text style={{ fontSize: 14 }}>{note}</Text>
-              </View>
-            ))}
           </View>
+
         </ScrollView>
       )}
 
+      {/* BOTTOM NAV */}
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem}>
-          <AntDesign name="home" size={22} color="#1DB954" />
+          <AntDesign name="home" size={22} color="#83c5be" />
           <Text style={styles.navLabel}>Home</Text>
         </TouchableOpacity>
 
@@ -157,7 +146,6 @@ export default function ContractorHome() {
           <AntDesign name="user" size={22} color="#666" />
           <Text style={styles.navLabel}>Profile</Text>
         </TouchableOpacity>
-
       </View>
 
     </View>
@@ -165,7 +153,7 @@ export default function ContractorHome() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF', paddingTop: 50 },
+  container: { flex: 1, backgroundColor: '#fff', paddingTop: 50 },
 
   topBar: {
     flexDirection: "row",
@@ -173,7 +161,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingBottom: 10,
-    backgroundColor: "#fff",
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
@@ -181,7 +168,7 @@ const styles = StyleSheet.create({
   appTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color:"#540b0e"
+    color: "#540b0e",
   },
 
   animationContainer: {
@@ -190,44 +177,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: '#FFFFFF',
-    zIndex: 1
+    backgroundColor: '#fff',
+    zIndex: 1,
   },
 
-  modalBackground: { 
-    flex: 1, 
-    justifyContent: 'flex-start', 
-    alignItems: 'flex-end', 
-    paddingTop: 70, 
-    paddingRight: 20 
+  modalBackground: {
+    flex: 1,
+    alignItems: 'flex-end',
+    paddingTop: 70,
+    paddingRight: 20,
   },
 
-  popupMenu: { 
-    backgroundColor: '#FFF', 
-    width: 150, 
-    paddingVertical: 10,
-    borderRadius: 10, 
-    elevation: 5 
+  popupMenu: {
+    backgroundColor: '#fff',
+    width: 150,
+    borderRadius: 10,
+    elevation: 5,
   },
 
-  popupItem: { 
-    fontSize: 18, 
-    padding: 12, 
-    borderBottomWidth: 0.5, 
-    borderBottomColor: '#DDD' 
-  },
-
-  postJobBtn: {
-    backgroundColor: "#1DB954",
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 25
-  },
-
-  postJobText: {
-    color: "#fff",
+  popupItem: {
     fontSize: 18,
-    fontWeight: "700"
+    padding: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#ddd',
   },
 
   statsContainer: {
@@ -237,12 +209,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "space-between",
   },
-sectionTitle: {
-  fontSize: 18,
-  fontWeight: "700",
-  marginBottom: 10,
-  color: "#333",
-},
+
   statBox: {
     width: "48%",
     backgroundColor: "#fff",
@@ -253,7 +220,12 @@ sectionTitle: {
   },
 
   statLabel: { fontSize: 14, color: "#555" },
-  statValue: { fontSize: 22, fontWeight: "700", marginTop: 5 },
+
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 10,
+  },
 
   workerCard: {
     width: "32%",
@@ -274,36 +246,42 @@ sectionTitle: {
 
   workerName: { fontWeight: "700", fontSize: 14 },
   workerTag: { fontSize: 12, color: "#999" },
-  workerRating: { fontSize: 12, color: "#444", marginTop: 4 },
 
-  notificationBox: {
-    flexDirection: "row",
+  /* ✅ FIXED BUTTON */
+  postJobContainer: {
+    paddingHorizontal: 20,
+    marginTop: 25,
+  },
+
+  postJobBtn: {
+    backgroundColor: "#83c5be",
+    paddingVertical: 15,
+    borderRadius: 12,
+    width: "100%",
     alignItems: "center",
-    backgroundColor: "#fff",
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 10,
-    elevation: 2,
+    elevation: 4,
+  },
+
+  postJobText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
   },
 
   bottomNav: {
-    width: "100%",
     height: 70,
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    backgroundColor: "#fff",
     borderTopWidth: 1,
     borderTopColor: "#eee",
     position: "absolute",
     bottom: 0,
-    left: 0,
+    width: "100%",
+    backgroundColor: "#fff",
   },
 
-  navItem: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  navItem: { alignItems: "center" },
 
   navLabel: {
     fontSize: 12,
