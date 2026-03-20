@@ -13,10 +13,19 @@ import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type ProfileType = {
-  name: string;
-  department: string;
+  Username: string;
+  Name: string;
+  Skills: string;
+  experience: string;
+  courseName: string;
+  certificateDate: string;
   phone: string;
   email: string;
+  address: string;
+  language: string;
+  country: string;
+  state: string;
+  district: string;
   image: string;
 };
 
@@ -24,184 +33,144 @@ export default function WorkerProfile() {
   const [isEditing, setIsEditing] = useState(false);
 
   const [profile, setProfile] = useState<ProfileType>({
-    name: "",
-    department: "",
+    Username: "",
+    Name: "",
+    Skills: "",
+    experience: "",
+    courseName: "",
+    certificateDate: "",
     phone: "",
     email: "",
+    address: "",
+    language: "",
+    country: "",
+    state: "",
+    district: "",
     image: "https://randomuser.me/api/portraits/women/44.jpg",
   });
 
   // ✅ LOAD DATA
   useEffect(() => {
     const loadUserData = async () => {
-      try {
-        const data = await AsyncStorage.getItem("userData");
-        if (data) {
-          const parsed = JSON.parse(data);
-          setProfile((prev) => ({
-            ...prev,
-            ...parsed,
-          }));
-        }
-      } catch (error) {
-        console.log("Error loading user data", error);
+      const data = await AsyncStorage.getItem("userData");
+      if (data) {
+        setProfile(JSON.parse(data));
       }
     };
-
     loadUserData();
   }, []);
 
-  // ✅ HANDLE INPUT CHANGE
+  // ✅ HANDLE CHANGE
   const handleChange = (key: keyof ProfileType, value: string) => {
-    setProfile((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setProfile((prev) => ({ ...prev, [key]: value }));
   };
 
-  // ✅ PICK IMAGE + SAVE IMMEDIATELY
+  // ✅ IMAGE PICK
   const pickImage = async () => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
-      });
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
 
-      if (!result.canceled) {
-        const imageUri = result.assets[0].uri;
-
-        const updatedProfile = {
-          ...profile,
-          image: imageUri,
-        };
-
-        setProfile(updatedProfile);
-
-        // ✅ SAVE IMAGE INSTANTLY
-        await AsyncStorage.setItem(
-          "userData",
-          JSON.stringify(updatedProfile)
-        );
-      }
-    } catch (error) {
-      console.log("Image pick error:", error);
+    if (!result.canceled) {
+      const imageUri = result.assets[0].uri;
+      const updated = { ...profile, image: imageUri };
+      setProfile(updated);
+      await AsyncStorage.setItem("userData", JSON.stringify(updated));
     }
   };
 
-  // ✅ SAVE PROFILE
+  // ✅ SAVE
   const saveProfile = async () => {
-    try {
-      await AsyncStorage.setItem("userData", JSON.stringify(profile));
-      setIsEditing(false);
-    } catch (error) {
-      console.log("Error saving profile", error);
-    }
+    await AsyncStorage.setItem("userData", JSON.stringify(profile));
+    setIsEditing(false);
   };
 
   return (
     <ScrollView style={styles.container}>
+      
       {/* HEADER */}
       <View style={styles.header}>
-        
-        {/* PROFILE IMAGE */}
         <TouchableOpacity disabled={!isEditing} onPress={pickImage}>
-          <Image
-            source={{ uri: profile.image }}
-            style={styles.avatar}
-            key={profile.image} // ✅ FORCE REFRESH
-          />
+          <Image source={{ uri: profile.image }} style={styles.avatar} />
         </TouchableOpacity>
 
-        {/* EDIT BUTTON */}
-        {!isEditing && (
-          <TouchableOpacity
-            style={styles.editBtn}
-            onPress={() => setIsEditing(true)}
-          >
-            <AntDesign name="edit" size={22} color="#000" />
+        {!isEditing ? (
+          <TouchableOpacity style={styles.editBtn} onPress={() => setIsEditing(true)}>
+            <AntDesign name="edit" size={22} />
           </TouchableOpacity>
-        )}
-
-        {/* BACK BUTTON */}
-        {isEditing && (
-          <TouchableOpacity
-            style={styles.backBtn}
-            onPress={() => setIsEditing(false)}
-          >
-            <AntDesign name="left" size={22} color="#000" />
+        ) : (
+          <TouchableOpacity style={styles.backBtn} onPress={() => setIsEditing(false)}>
+            <AntDesign name="left" size={22} />
           </TouchableOpacity>
-        )}
-
-        {/* TEXT */}
-        {isEditing && (
-          <Text style={{ marginTop: 8, fontSize: 12 }}>
-            Tap image to change
-          </Text>
         )}
       </View>
 
       {/* CONTENT */}
       <View style={styles.content}>
+
         {!isEditing ? (
           <>
-            <Text style={styles.label}>Name</Text>
-            <Text style={styles.value}>{profile.name || "Not set"}</Text>
-
-            <Text style={styles.label}>Department</Text>
-            <Text style={styles.value}>
-              {profile.department || "Not set"}
-            </Text>
-
-            <Text style={styles.label}>Phone</Text>
-            <Text style={styles.value}>{profile.phone || "Not set"}</Text>
-
-            <Text style={styles.label}>Email</Text>
-            <Text style={styles.value}>{profile.email || "Not set"}</Text>
+            {Object.entries(profile).map(([key, value]) =>
+              key !== "image" ? (
+                <View key={key}>
+                  <Text style={styles.label}>{key}</Text>
+                  <Text style={styles.value}>{value || "Not set"}</Text>
+                </View>
+              ) : null
+            )}
           </>
         ) : (
           <>
             <Text style={styles.label}>Name</Text>
-            <TextInput
-              style={styles.input}
-              value={profile.name}
-              onChangeText={(text) => handleChange("name", text)}
-            />
+            <TextInput style={styles.input} value={profile.Name} onChangeText={(t) => handleChange("Name", t)} />
 
-            <Text style={styles.label}>Department</Text>
-            <TextInput
-              style={styles.input}
-              value={profile.department}
-              onChangeText={(text) => handleChange("department", text)}
-            />
+            <Text style={styles.label}>Skills</Text>
+            <TextInput style={styles.input} value={profile.Skills} onChangeText={(t) => handleChange("Skills", t)} />
+
+            <Text style={styles.label}>Experience</Text>
+            <TextInput style={styles.input} value={profile.experience} onChangeText={(t) => handleChange("experience", t)} />
+
+            <Text style={styles.label}>Certificate Course</Text>
+            <TextInput style={styles.input} value={profile.courseName} onChangeText={(t) => handleChange("courseName", t)} />
+
+            <Text style={styles.label}>Certificate Date</Text>
+            <TextInput style={styles.input} value={profile.certificateDate} onChangeText={(t) => handleChange("certificateDate", t)} />
 
             <Text style={styles.label}>Phone</Text>
-            <TextInput
-              style={styles.input}
-              value={profile.phone}
-              keyboardType="phone-pad"
-              onChangeText={(text) => handleChange("phone", text)}
-            />
+            <TextInput style={styles.input} value={profile.phone} keyboardType="phone-pad" onChangeText={(t) => handleChange("phone", t)} />
 
             <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              value={profile.email}
-              keyboardType="email-address"
-              onChangeText={(text) => handleChange("email", text)}
-            />
+            <TextInput style={styles.input} value={profile.email} onChangeText={(t) => handleChange("email", t)} />
+
+            <Text style={styles.label}>Address</Text>
+            <TextInput style={styles.input} value={profile.address} onChangeText={(t) => handleChange("address", t)} />
+
+            <Text style={styles.label}>Language</Text>
+            <TextInput style={styles.input} value={profile.language} onChangeText={(t) => handleChange("language", t)} />
+
+            <Text style={styles.label}>Country</Text>
+            <TextInput style={styles.input} value={profile.country} onChangeText={(t) => handleChange("country", t)} />
+
+            <Text style={styles.label}>State</Text>
+            <TextInput style={styles.input} value={profile.state} onChangeText={(t) => handleChange("state", t)} />
+
+            <Text style={styles.label}>District</Text>
+            <TextInput style={styles.input} value={profile.district} onChangeText={(t) => handleChange("district", t)} />
 
             <TouchableOpacity style={styles.saveBtn} onPress={saveProfile}>
               <Text style={styles.saveText}>Save Changes</Text>
             </TouchableOpacity>
           </>
         )}
+
       </View>
     </ScrollView>
   );
 }
 
+// 🎨 STYLES
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f2f2f2" },
 
@@ -220,41 +189,19 @@ const styles = StyleSheet.create({
     borderColor: "#fff",
   },
 
-  editBtn: {
-    position: "absolute",
-    top: 50,
-    right: 20,
-  },
+  editBtn: { position: "absolute", top: 50, right: 20 },
+  backBtn: { position: "absolute", top: 50, left: 20 },
 
-  backBtn: {
-    position: "absolute",
-    top: 50,
-    left: 20,
-  },
+  content: { marginTop: 20, paddingHorizontal: 20 },
 
-  content: {
-    marginTop: 20,
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-
-  label: {
-    color: "#888",
-    marginTop: 15,
-    fontSize: 13,
-  },
-
-  value: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginTop: 2,
-  },
+  label: { color: "#888", marginTop: 12, fontSize: 13 },
+  value: { fontSize: 16, fontWeight: "600" },
 
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 10,
-    padding: 12,
+    padding: 10,
     marginTop: 5,
     backgroundColor: "#fff",
   },
@@ -267,8 +214,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  saveText: {
-    color: "#fff",
-    fontWeight: "700",
-  },
+  saveText: { color: "#fff", fontWeight: "700" },
 });
